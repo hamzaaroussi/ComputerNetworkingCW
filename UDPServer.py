@@ -11,20 +11,25 @@ BUFF_SIZE = 65536
 CLIENT = []
 USERS = {'user1':'1234', 'user2':'1234', 'user3':'1234', 'user4':'1234'}
 
+#check if user is already logged in
+
 def check_username(username):
 
     return  username in CLIENT.keys()
 
 def full():
 
-    if len(CLIENT) >=4:
+    if len(CLIENT) >=3:
         return True
     else:
         return False
 
+#check if the username exists in users list
 def check_username(username):
 
     return  username in USERS.keys()
+
+#check password validity
 
 def check_password(username,password):
 
@@ -43,9 +48,10 @@ server_socket.bind(socket_address)
 print('Listening at:',socket_address)
 
 
-vid = cv2.VideoCapture(0, cv2.CAP_DSHOW) #  replace 'rocket.mp4' with 0 for webcam
+vid = cv2.VideoCapture(0, cv2.CAP_DSHOW) #  replace 0, cv2.CAP_DSHOW with 'video.mp4' for video (0 is also can be alone inside for webcam)
 
 
+#this function receive packet from client, and based on the packet received, the server respond to the client
 def receive():
     while True:
         msg,client_addr = server_socket.recvfrom(BUFF_SIZE)
@@ -58,25 +64,31 @@ def receive():
             print('LOGIN')
             
             if not full():
+                if msg[1] in CLIENT:
+                    text = "MESSAGE::EXISTED"
+                    
+                    server_socket.sendto(base64.b64encode(text.encode('ascii')),client_addr)
+                    print('User already login')
+                else:
 
-                if check_username(msg[1]) :
-                
-                    if check_password(msg[1],msg[2]):      
-                        text = "MESSAGE::AUTHORIZE"
+                    if check_username(msg[1]) :
+                    
+                        if check_password(msg[1],msg[2]):      
+                            text = "MESSAGE::AUTHORIZE"
 
-                        server_socket.sendto(base64.b64encode(text.encode('ascii')),client_addr)
-                        print('password match')
-                        CLIENT.append(msg[1])
-                        x = threading.Thread(target=streaming,args=(client_addr[0],client_addr[1],msg[1]))
-                        x.start()
-                    else:
-                        text = "MESSAGE::UNAUTHORIZE"
+                            server_socket.sendto(base64.b64encode(text.encode('ascii')),client_addr)
+                            print('password match')
+                            CLIENT.append(msg[1])
+                            x = threading.Thread(target=streaming,args=(client_addr[0],client_addr[1],msg[1]))
+                            x.start()
+                        else:
+                            text = "MESSAGE::UNAUTHORIZE"
 
-                        server_socket.sendto(base64.b64encode(text.encode('ascii')),client_addr)
-                        print("faild")
-                        
-                        
-                        print('No')
+                            server_socket.sendto(base64.b64encode(text.encode('ascii')),client_addr)
+                            print("faild")
+                            
+                            
+                            print('No')
             else:
                 text = "MESSAGE::FULL"
 
@@ -90,7 +102,7 @@ def receive():
         else :
             print('Wrong format of the packet received')
 
-
+#start streaming the video
 def streaming(client_addr1, e, username):
     client_adrr= (client_addr1,e)
     username = username

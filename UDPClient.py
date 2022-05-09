@@ -20,15 +20,15 @@ client_socket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 client_socket.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,BUFF_SIZE)
 #client_socket.settimeout(3)
 host_name = socket.gethostname()
-host_ip = '10.77.29.129' #socket.gethostbyname(host_name)
+host_ip = '10.77.53.222' #socket.gethostbyname(host_name)
 
 print(host_ip)
-port = 12345
+port = 9999
 
 
 RTT_list =[]
 
-
+#receive video packets and decode it using base64
 def rec_vdo():
     fps,st,frames_to_count,cnt = (0,0,20,0)
     while True:
@@ -63,7 +63,9 @@ def rec_vdo():
                     pass
             cnt+=1
 
-message = 'LOGIN::wish::1234'
+
+#send credentials to the server and request starting streaming
+message = 'LOGIN:user1::1234'
 try:
     client_socket.sendto(base64.b64encode(message.encode("ascii")),(host_ip,port))
     packet,_ = client_socket.recvfrom(BUFF_SIZE)
